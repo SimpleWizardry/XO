@@ -1,0 +1,36 @@
+.game-history {
+  background: #131111;
+  height: 100%;
+  overflow: scroll;
+
+  h1 {
+    margin: 0;
+    color: white;
+    line-height: 100px;
+  }
+
+  ul {
+    //margin-left: 0;
+    //padding-left: 0;
+
+    li {
+      margin-bottom: 10px;
+      text-align:left;
+      list-style-type: none;
+      font-size: 20px;
+    }
+  }
+
+  .game-result__ {
+
+    &win {
+      color: #166b16;
+    }
+
+    &defeat {
+      color: #942424;
+    }
+  }
+
+
+}
