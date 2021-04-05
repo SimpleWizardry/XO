@@ -6,17 +6,31 @@ import { Server } from 'socket.io';
 
 import GamesController from './controllers/GamesController.js';
 
+const GamesCtrl = new GamesController();
+
+const PORT = 3005;
+
+
 
 const app = express();
 const http = createServer(app);
-const io = new Server (http, {
-    cors: 'http://localhost:3000/'
+const io = new Server(http, {
+    cors: {
+        origin: "http://localhost:3000",
+    }
 })
+
 io.on('connection',socket => {
+    console.log('client ready')
+    //socket.on('disconnect', GamesCtrl.saveGame)
+    socket.on('turn', data => {
+        console.log('turn',data)
+    })
 
 })
 
-const PORT = 3005;
+app.use(cors())
+
 
 mongoose.connect('mongodb+srv://testUser:test123pass@mycluster.ehxqa.mongodb.net/tic-tac-toe?retryWrites=true&w=majority',
     {
@@ -25,16 +39,15 @@ mongoose.connect('mongodb+srv://testUser:test123pass@mycluster.ehxqa.mongodb.net
         useFindAndModify: false
     })
 
-const GamesCtrl = new GamesController();
-
-app.use(cors());
+//app.use(cors());
 
 app.get('/games', GamesCtrl.getGames)
+app.post('/games/new', GamesCtrl.createGame)
 
 const dbConnection = mongoose.connection;
 dbConnection.on('error', err => console.log(`Connection error: ${err}`));
 dbConnection.once('open', () => console.log('Connected to DB'));
 
-app.listen(PORT, err => {
+http.listen(PORT, err => {
     err ? console.log(err) : console.log('Server started!');
 });
