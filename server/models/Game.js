@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const gameSchema = new mongoose.Schema ({
-    state: {
+    gameState: {
         1: String,
         2: String,
         3: String,

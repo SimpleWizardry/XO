@@ -17,6 +17,9 @@ class GamesController {
             err ? console.log(err) : res.json(game)
         })
     }
+    saveGame = (req, res) => {
+
+    }
 }
 
 export default GamesController;
