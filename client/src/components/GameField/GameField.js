@@ -26,7 +26,6 @@ export const GameField = ( ) => {
     return (
         <div className='game-field'>
             {Object.keys(game).map(key =>
-                //console.log(key, game[key])
                 <div
                     className='game-field--cell'
                     key={key}
