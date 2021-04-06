@@ -28,13 +28,28 @@ const newField = {
     result: 'not finished'
 }
 
+function computerThinkingAbout(turn, room) {
+    let state = turn.gameState
+    let enemiesPos = []
+    for (let key in state) {
+        state[key] === 'X' ? enemiesPos.push(+key) : null
+    }
+    console.log(enemiesPos.toString() === '1')
+    switch (enemiesPos.toString()) {
+        case '1' :
+            turn.gameState[5] = 'O'
+    }
+    io.sockets.in(room).emit('mes', turn);
+}
+
+
 io.on('connection', socket => {
     console.log('client ready')
     socket.on('room', room => {
         socket.join(room)
         io.sockets.in(room).emit('newGame', newField);
 
-        socket.on('turn', num => console.log(num))
+        socket.on('turn', turn => computerThinkingAbout(turn, room))
     })
 
 })

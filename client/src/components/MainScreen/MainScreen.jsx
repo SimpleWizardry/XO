@@ -11,6 +11,7 @@ export default function MainScreen() {
     const [gameStarted, setGameStarted] = useState(false)
     const [gameHistory, setGameHistory] = useState([])
     const [field,setField] = useState({})
+    const [wrongTurn, setWrongTurn] = useState(false)
 
     useEffect(() => {
         axios.defaults.baseURL = window.location.origin;
@@ -34,6 +35,11 @@ export default function MainScreen() {
 
     }
 
+    useEffect(() => {
+        socket.on('mes', AITurn => setField(AITurn))
+    })
+
+
     const moveHandler = (e) => {
         let cellNumber = e.target.id
         let myTurn = {...field}
@@ -42,14 +48,23 @@ export default function MainScreen() {
         socket.emit('turn', myTurn);
     }
 
+    const wrongTurnHandler = (e) => {
+        setWrongTurn(true)
+        setTimeout(() => setWrongTurn(false),1000)
+    }
+
     return (
         <div className='container'>
             <div className='screen'>
+
+                { wrongTurn? <div className='wrong-turn'>недопустимый ход</div> : null }
+
                 <div>
                     {gameStarted ?
                         <GameField
                             field={field.gameState}
                             makeAMove={moveHandler}
+                            wrongTurn={wrongTurnHandler}
                         /> :
                         <button onClick={clickHandler}>НАЧАТЬ</button>
                     }
