@@ -28,18 +28,60 @@ const newField = {
     result: 'not finished'
 }
 
+function getRandomOdd(min,max) {
+    let num = Math.round(min+Math.random() * (max-min));
+    return num%2 !== 0 && num !== 5 ? num : getRandomOdd(min, max);
+}
+
+function firstTurnHandler(enemiesPos, turn) {
+    let [ pos ] =  enemiesPos
+    //Всегда стараемся занять центр, иначе угловую клетку
+    return pos === 5 ? turn.gameState[getRandomOdd(1,9)] = 'O' : turn.gameState[5] = 'O'
+}
+
+const WIN_COMBINATIONS = ['123','456','789','147','258','369','159','357']
+
+function secondTurnHandler(enemiesPos, turn) {
+    let pos = enemiesPos.join('')
+    let potentialWin = WIN_COMBINATIONS.find(combo => {
+        return combo.includes(pos)
+    })
+    let AITurn = +potentialWin.replace(pos, '')
+    return turn.gameState[AITurn] = 'O'
+}
+
+function thirdTurnHandler(enemiesPos, turn) {
+    let pos = enemiesPos.join('')
+    //console.log(pos)
+
+    // let potentialWin = WIN_COMBINATIONS.find(combo => {
+    //     return combo.includes(pos)
+    // })
+    // let AITurn = +potentialWin.replace(pos, '')
+    // return turn.gameState[AITurn] = 'O'
+}
+
 function computerThinkingAbout(turn, room) {
     let state = turn.gameState
     let enemiesPos = []
     for (let key in state) {
         state[key] === 'X' ? enemiesPos.push(+key) : null
     }
-    console.log(enemiesPos.toString() === '1')
-    switch (enemiesPos.toString()) {
-        case '1' :
-            turn.gameState[5] = 'O'
+    switch (enemiesPos.length) {
+        case 1 :
+            firstTurnHandler(enemiesPos, turn)
+            break;
+        case 2:
+            secondTurnHandler(enemiesPos, turn)
+            break;
+        case 3:
+            thirdTurnHandler(enemiesPos, turn)
+            break;
+        default:
+            return turn;
+
     }
-    io.sockets.in(room).emit('mes', turn);
+    io.sockets.in(room).emit('AITurn', turn);
 }
 
 
@@ -67,7 +109,9 @@ const GamesCtrl = new GamesController();
 
 app.use(cors());
 
+app.get('/game', GamesCtrl.continueGame)
 app.get('/games', GamesCtrl.getGames)
+app.post('/game/save', GamesCtrl.saveGame)
 
 const dbConnection = mongoose.connection;
 dbConnection.on('error', err => console.log(`Connection error: ${err}`));

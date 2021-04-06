@@ -36,7 +36,14 @@ export default function MainScreen() {
     }
 
     useEffect(() => {
-        socket.on('mes', AITurn => setField(AITurn))
+            socket.on('disconnecting', axios.post('http://localhost:3005/game/save', {field}).then(res => console.log(res)))
+        },
+        [])
+
+    //socket.on('disconnect', axios.post('/game/save', field).then(res => console.log(res)))
+
+    useEffect(() => {
+        socket.on('AITurn', AITurn => setField(AITurn))
     })
 
 

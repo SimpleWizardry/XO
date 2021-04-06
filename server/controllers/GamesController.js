@@ -18,7 +18,12 @@ class GamesController {
         })
     }
     saveGame = (req, res) => {
-
+        //const gameToSave = req.toJSON
+        const gameToSave = req.body
+        console.log(req,gameToSave)
+        // gameToSave
+        //     .save()
+        //     .then(() => console.log(req,res))
     }
 }
 
