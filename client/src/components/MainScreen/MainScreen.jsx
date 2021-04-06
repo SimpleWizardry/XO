@@ -10,18 +10,25 @@ const socket = io("http://localhost:3005", {autoConnect: false});
 export default function MainScreen() {
     const [gameStarted, setGameStarted] = useState(false)
     const [gameHistory, setGameHistory] = useState([])
-    const [field,setField] = useState({})
+    const [field,setField] = useState({gameState:{}})
     const [wrongTurn, setWrongTurn] = useState(false)
+    //const [wsConnection, setWsConnection] = useState(false)
 
     useEffect(() => {
-        axios.defaults.baseURL = window.location.origin;
-        window.axios = axios;
         axios.get('/games')
             .then(res => {
                 setGameHistory(res.data)
             })
-        },
-        [])
+        axios.get('/game')
+            .then(res => {
+                if (res.data.length !== 0) {
+                    setField(res.data[0])
+                    setGameStarted(true)
+                    socket.connect()
+                }
+            })
+            .catch(err => console.log(err))
+    }, [])
 
     const clickHandler = ( ) => {
         socket.connect()
@@ -32,19 +39,13 @@ export default function MainScreen() {
             setField(newField)
             setGameStarted(true)
         });
-
+        socket.on('AITurn', AITurn => setField(AITurn))
+        socket.on('disconnecting', () => console.log(socket.rooms))
     }
 
-    useEffect(() => {
-            socket.on('disconnecting', axios.post('http://localhost:3005/game/save', {field}).then(res => console.log(res)))
-        },
-        [])
-
-    //socket.on('disconnect', axios.post('/game/save', field).then(res => console.log(res)))
-
-    useEffect(() => {
-        socket.on('AITurn', AITurn => setField(AITurn))
-    })
+    // useEffect(() => {
+    //     socket.on('AITurn', AITurn => setField(AITurn))
+    // })
 
 
     const moveHandler = (e) => {
@@ -62,6 +63,7 @@ export default function MainScreen() {
 
     return (
         <div className='container'>
+
             <div className='screen'>
 
                 { wrongTurn? <div className='wrong-turn'>недопустимый ход</div> : null }
@@ -83,3 +85,4 @@ export default function MainScreen() {
         </div>
     )
 }
+// <div onClick={() => console.log(field)}>CHECK</div>

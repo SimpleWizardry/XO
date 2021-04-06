@@ -2,6 +2,7 @@ import React from 'react';
 import './gameField.scss'
 
 export const GameField = ({field, makeAMove, wrongTurn}) => {
+    //console.log(field)
     return (
         <>
 

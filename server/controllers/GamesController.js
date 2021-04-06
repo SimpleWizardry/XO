@@ -6,24 +6,27 @@ class GamesController {
             err ? console.log(err) : res.json(game)
         })
     }
-    createGame = ( _ , res) => {
-        const game = new GameModel();
-        game
-            .save()
-            .then(() => console.log(res))
-    }
+    // createGame = ( _ , res) => {
+    //     const game = new GameModel();
+    //     game
+    //         .save()
+    //         .then(() => console.log(res))
+    // }
+    // continueGame = ( req, res) => {
+    //     GameModel.find({ result: 'not finished' }, (err, game) => {
+    //         err ? res.json(err) : res.json(game)
+    //     })
+    // }
     continueGame = ( req, res) => {
         GameModel.find({ result: 'not finished' }, (err, game) => {
-            err ? console.log(err) : res.json(game)
+            !game ? res.json('no such games') : res.json(game)
         })
     }
-    saveGame = (req, res) => {
-        //const gameToSave = req.toJSON
-        const gameToSave = req.body
-        console.log(req,gameToSave)
-        // gameToSave
-        //     .save()
-        //     .then(() => console.log(req,res))
+    saveGame = (game) => {
+         const gameToSave = new GameModel(game)
+         gameToSave
+             .save()
+             .catch(reason => console.log(reason))
     }
 }
 
