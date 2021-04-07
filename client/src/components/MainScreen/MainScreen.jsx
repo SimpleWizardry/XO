@@ -7,6 +7,7 @@ import io from "socket.io-client";
 
 const socket = io("http://localhost:3005", {autoConnect: false});
 
+
 export default function MainScreen() {
     const [gameStarted, setGameStarted] = useState(false)
     const [gameHistory, setGameHistory] = useState([])
@@ -32,21 +33,30 @@ export default function MainScreen() {
 
     const clickHandler = ( ) => {
         socket.connect()
-        socket.on('connect', () => {
-            socket.emit('room', 'newRoom');
+        socket.once('connect', () => {
+            //socket.emit('room', 'newRoom');
+            socket.emit('room', socket.id);
         })
         socket.on('newGame', newField => {
             setField(newField)
             setGameStarted(true)
         });
-        socket.on('AITurn', AITurn => setField(AITurn))
-        socket.on('disconnecting', () => console.log(socket.rooms))
+        socket.on('AITurn', AITurn => checkResult(AITurn))
     }
 
-    // useEffect(() => {
-    //     socket.on('AITurn', AITurn => setField(AITurn))
-    // })
+    socket.on('AITurn', AITurn => checkResult(AITurn))
 
+    const checkResult = (AITurn) => {
+        setField(AITurn)
+        if (AITurn.result !== 'not finished') {
+            socket.emit('endGame', AITurn)
+            axios.get('/games')
+                .then(res => {
+                    setGameHistory(res.data)
+                })
+            //socket.disconnect()
+        }
+    }
 
     const moveHandler = (e) => {
         let cellNumber = e.target.id
@@ -71,9 +81,10 @@ export default function MainScreen() {
                 <div>
                     {gameStarted ?
                         <GameField
-                            field={field.gameState}
+                            field={field}
                             makeAMove={moveHandler}
                             wrongTurn={wrongTurnHandler}
+                            startAgain={clickHandler}
                         /> :
                         <button onClick={clickHandler}>НАЧАТЬ</button>
                     }
@@ -85,4 +96,3 @@ export default function MainScreen() {
         </div>
     )
 }
-// <div onClick={() => console.log(field)}>CHECK</div>

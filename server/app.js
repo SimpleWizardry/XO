@@ -41,23 +41,23 @@ function firstTurnHandler(playersPos, currentState) {
 
 const WIN_COMBINATIONS = ['123','456','789','147','258','369','159','357']
 
-function defense(combination,pos) {
+function defense([combination],pos) {
     combination = combination.split('')
     pos = pos.split('')
     const defTurn = combination.filter(e => !~pos.indexOf(e))
     return +defTurn[0]
 }
 
-//Не отрабатывает после 2 хода, переписать для посимвольного сравнения
-function searchForWinCombination(combos,pos) {
-    console.log(pos)
-     return combos.find(combo => {
-        if (combo.includes(pos)) {
-            return combo
-        }
-        else if (combo.startsWith(pos[0]) && combo.endsWith(pos[1])) {
-            return combo
-        }
+//Ищет наиболее подходящую на данный момент комбинацию
+function searchForWinCombination(combos,pos,requiredMatches) {
+    let posArr = pos.split('')
+    return combos.filter(combo => {
+        let matchCount = 0
+        let arr = combo.split('')
+        arr.forEach(num => {
+            posArr.indexOf(num) !== -1 ? matchCount++ : null
+        })
+        return matchCount >= requiredMatches
     })
 }
 
@@ -72,7 +72,7 @@ function tryToWin(currentState) {
 
     let freeAndAIPos = freePos.concat(AIPos)
 
-    //Ищем доступные комбинации с учетом свободных и занятых компьютером клеток
+    //Ищем доступные комбинации с учетом свободных и занятых компьютером клеток(вынести в ф-цию)
     let availableCombos = WIN_COMBINATIONS.filter(combo => {
         let matchCount = 0
         let arr = combo.split('')
@@ -81,30 +81,86 @@ function tryToWin(currentState) {
         })
         return matchCount > 2
     })
-    let AIPotentialWin = searchForWinCombination(availableCombos,AIPos)
-    const offTurn = AIPotentialWin.split('').filter(e => !~AIPos.indexOf(e))
+    let AIPotentialWin = searchForWinCombination(availableCombos,AIPos.join(),1)
+
+    const offTurn = AIPotentialWin[0].split('').filter(e => !~AIPos.indexOf(e))
     return +offTurn[0]
 }
 
 function secondTurnHandler(playersPos, currentState) {
+    let state = currentState.gameState
     let AITurn
+    let AIPos = []
+    for (let key in state) {
+        state[key] === 'O' ? AIPos.push(key) : null
+    }
     let pos = playersPos.join('') // По идее нужно вынести в функцию защиты и поиска опасности
-    let potentialWin = searchForWinCombination(WIN_COMBINATIONS,pos)
+    let potentialLose = searchForWinCombination(WIN_COMBINATIONS,pos,2)
 
     //Если не грозит поражение на следующий ход,пытаемся найти свою комбинацию
-    AITurn = potentialWin === undefined ? tryToWin(currentState) : defense(potentialWin,pos)
+    AITurn = potentialLose.length === 0 ? tryToWin(currentState) :
+        potentialLose[0].includes(AIPos[0]) ? tryToWin(currentState) : defense(potentialLose,pos)
 
     return currentState.gameState[AITurn] = 'O'
 }
 
+
 function thirdTurnHandler(playersPos, currentState) {
     let AITurn
+    let state = currentState.gameState
+    let freePos = []
+    let AIPos = []
+    for (let key in state) {
+        state[key] === '' ? freePos.push(key) : null
+        state[key] === 'O' ? AIPos.push(key) : null
+    }
+
+    let freeAndPlayersPos = freePos.concat(playersPos.join('').split(''))
+    let freeAndAIPos = freePos.concat(AIPos)
+    //Ищем доступные игроку и компьютеру комбинации для победы
+    let availableForPlayerCombos = availableCombinations(freeAndPlayersPos)
+    let availableForAICombos = availableCombinations(freeAndAIPos)
     let pos = playersPos.join('') // По идее нужно вынести в функцию защиты и поиска опасности
-    let potentialWin = searchForWinCombination(WIN_COMBINATIONS,pos)
-    console.log(potentialWin)
+    let potentialLose = searchForWinCombination(availableForPlayerCombos,pos,2)
+    let potentialWin = searchForWinCombination(availableForAICombos,AIPos.join(''),2)
+
+    AITurn = potentialWin.length !== 0 ? tryToWin(currentState) :
+        potentialLose.length !== 0 ? defense(potentialLose,pos) : freePos[0]
+
+    return currentState.gameState[AITurn] = 'O'
+}
+
+function checkForResult(currentState) {
+    let state = currentState.gameState
+    let playersPos = []
+    let AIPos = []
+    let freePos = []
+    for (let key in state) {
+        state[key] === 'X' ? playersPos.push(key) : null
+        state[key] === 'O' ? AIPos.push(key) : null
+        state[key] === '' ? freePos.push(key) : null
+    }
+    let playerWins = availableCombinations(playersPos)
+    let AIWins = availableCombinations(AIPos)
+    AIWins.length !== 0 ? currentState.result = 'defeat' : null
+    playerWins.length !== 0 ? currentState.result = 'win' : null
+    freePos.length < 2 && currentState.result === 'not finished' ? currentState.result = 'tie' : null
+}
+
+//Ищет все доступные комбинации
+function availableCombinations(pos) {
+    return  WIN_COMBINATIONS.filter(combo => {
+        let matchCount = 0
+        let arr = combo.split('')
+        arr.forEach(num => {
+            pos.indexOf(num) !== -1 ? matchCount++ : null
+        })
+        return matchCount > 2
+    })
 }
 
 function computerThinkingAbout(currentState, room) {
+    console.log(room)
     let state = currentState.gameState
     // Вынести в соответствующие ф-ции
     let playersPos = []
@@ -120,6 +176,11 @@ function computerThinkingAbout(currentState, room) {
             break;
         case 3:
             thirdTurnHandler(playersPos, currentState)
+            checkForResult(currentState)
+            break;
+        case 4:
+            thirdTurnHandler(playersPos, currentState)
+            checkForResult(currentState)
             break;
         default:
             return currentState;
@@ -131,20 +192,30 @@ function computerThinkingAbout(currentState, room) {
 
 let currentGame = {}
 
+let currentRoom
+
 io.on('connection', socket => {
+    currentRoom ? socket.join(currentRoom) : null
     console.log('client ready')
     socket.on('room', room => {
+        currentRoom = room
         socket.join(room)
-        console.log('new room', room)
         io.sockets.in(room).emit('newGame', newField);
-
-        socket.on('turn', turn => computerThinkingAbout(turn, room))
+        currentGame = newField
     })
+    socket.on('turn', turn => {
+        currentGame = turn
+        computerThinkingAbout(turn, currentRoom)})
     socket.on('disconnect',() => {
         //GamesCtrl.saveGame(currentGame)
 
-        console.log('client has gone')
+        console.log('client has gone ' + currentRoom)
 
+    })
+    socket.on('endGame',(game) => {
+        //GamesCtrl.saveGame(game)
+        socket.disconnect()
+        currentRoom = null
     })
     socket.on('disconnecting', () => console.log('wtf',socket.rooms))
 

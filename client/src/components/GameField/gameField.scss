@@ -18,3 +18,33 @@
     }
   }
 }
+button.play-again {
+  font-size: 30px;
+  letter-spacing: 0;
+  height: 50px;
+  margin-top: 30px;
+  border-radius: 10px;
+}
+.small-field {
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  grid-template-rows: repeat(3, 70px);
+  margin-left: 25%;
+  margin-top: 40px;
+
+  &--cell {
+    background: #8989b9;
+    display: flex;
+    border: 1px solid black;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    font-weight: 700;
+  }
+}
+
+.end-game--result {
+  font-size: 40px;
+  font-weight: 600;
+  color: white;
+}

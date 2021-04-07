@@ -1,6 +1,6 @@
 .game-history {
   background: #131111;
-  height: 100%;
+  height: 100vh;
   overflow: scroll;
 
   h1 {
@@ -10,9 +10,6 @@
   }
 
   ul {
-    //margin-left: 0;
-    //padding-left: 0;
-
     li {
       margin-bottom: 10px;
       text-align:left;
@@ -29,6 +26,10 @@
 
     &defeat {
       color: #942424;
+    }
+
+    &tie {
+      color: gray;
     }
   }
 

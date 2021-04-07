@@ -8,7 +8,9 @@ export default function GameHistory({gameHistoryArr}) {
             <ul>
                 {gameHistoryArr.map((game, index) =>
                     <li key={game._id} className={'game-result__' + game.result}>
-                        Игра номер {index + 1} : {game.result === 'win' ? 'победа' : 'поражение' }
+                        Игра номер {index + 1} : {game.result === 'win' ? 'победа' :
+                                                    game.result === 'defeat' ? 'поражение' :
+                                                        game.result === 'tie'? 'ничья' : null}
                     </li>
                 )}
             </ul>
