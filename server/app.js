@@ -48,7 +48,7 @@ function defense([combination],pos) {
     return +defTurn[0]
 }
 
-//Ищет наиболее подходящую на данный момент комбинацию
+//Ищет наиболее подходящую на данный момент комбинацию(переписать под поиск одной наиболее подходящей из списка доступных)
 function searchForWinCombination(combos,pos,requiredMatches) {
     let posArr = pos.split('')
     return combos.filter(combo => {
@@ -62,6 +62,7 @@ function searchForWinCombination(combos,pos,requiredMatches) {
 }
 
 function tryToWin(currentState) {
+    console.log('im trying')
     let state = currentState.gameState
     let AIPos = []
     let freePos = []
@@ -81,7 +82,10 @@ function tryToWin(currentState) {
         })
         return matchCount > 2
     })
-    let AIPotentialWin = searchForWinCombination(availableCombos,AIPos.join(),1)
+    console.log(availableCombos)
+    let AIPotentialWin = searchForWinCombination(availableCombos,AIPos.join(),2)
+    AIPotentialWin.length === 0 ? AIPotentialWin = searchForWinCombination(availableCombos,AIPos.join(),1) : null
+    console.log(AIPotentialWin)
 
     const offTurn = AIPotentialWin[0].split('').filter(e => !~AIPos.indexOf(e))
     return +offTurn[0]
@@ -123,7 +127,7 @@ function thirdTurnHandler(playersPos, currentState) {
     let pos = playersPos.join('') // По идее нужно вынести в функцию защиты и поиска опасности
     let potentialLose = searchForWinCombination(availableForPlayerCombos,pos,2)
     let potentialWin = searchForWinCombination(availableForAICombos,AIPos.join(''),2)
-
+    console.log(potentialWin,potentialLose)
     AITurn = potentialWin.length !== 0 ? tryToWin(currentState) :
         potentialLose.length !== 0 ? defense(potentialLose,pos) : freePos[0]
 
@@ -160,7 +164,6 @@ function availableCombinations(pos) {
 }
 
 function computerThinkingAbout(currentState, room) {
-    console.log(room)
     let state = currentState.gameState
     // Вынести в соответствующие ф-ции
     let playersPos = []
@@ -207,7 +210,7 @@ io.on('connection', socket => {
         currentGame = turn
         computerThinkingAbout(turn, currentRoom)})
     socket.on('disconnect',() => {
-        //GamesCtrl.saveGame(currentGame)
+        GamesCtrl.saveGame(currentGame)
 
         console.log('client has gone ' + currentRoom)
 
