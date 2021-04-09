@@ -4,6 +4,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
+import {PORT, WIN_COMBINATIONS, NEW_FIELD} from './constants/constants.js';
 import GamesController from './controllers/GamesController.js';
 
 
@@ -13,20 +14,7 @@ const io = new Server (http, {
     cors: 'http://localhost:3000'
 })
 
-const newField = {
-    gameState: {
-        1: '',
-        2: '',
-        3: '',
-        4: '',
-        5: '',
-        6: '',
-        7: '',
-        8: '',
-        9: ''
-    },
-    result: 'not finished'
-}
+
 
 function getRandomOdd(min,max) {
     let num = Math.round(min+Math.random() * (max-min));
@@ -39,7 +27,7 @@ function firstTurnHandler(playersPos, currentState) {
     return pos === 5 ? currentState.gameState[getRandomOdd(1,9)] = 'O' : currentState.gameState[5] = 'O'
 }
 
-const WIN_COMBINATIONS = ['123','456','789','147','258','369','159','357']
+
 
 function defense([combination],pos) {
     combination = combination.split('')
@@ -62,7 +50,6 @@ function searchForWinCombination(combos,pos,requiredMatches) {
 }
 
 function tryToWin(currentState) {
-    console.log('im trying')
     let state = currentState.gameState
     let AIPos = []
     let freePos = []
@@ -72,16 +59,7 @@ function tryToWin(currentState) {
     }
 
     let freeAndAIPos = freePos.concat(AIPos)
-
-    //Ищем доступные комбинации с учетом свободных и занятых компьютером клеток(вынести в ф-цию)
-    let availableCombos = WIN_COMBINATIONS.filter(combo => {
-        let matchCount = 0
-        let arr = combo.split('')
-        arr.forEach(num => {
-            freeAndAIPos.indexOf(num) !== -1 ? matchCount++ : null
-        })
-        return matchCount > 2
-    })
+    let availableCombos = availableCombinations(freeAndAIPos)
     console.log(availableCombos)
     let AIPotentialWin = searchForWinCombination(availableCombos,AIPos.join(),2)
     AIPotentialWin.length === 0 ? AIPotentialWin = searchForWinCombination(availableCombos,AIPos.join(),1) : null
@@ -203,14 +181,14 @@ io.on('connection', socket => {
     socket.on('room', room => {
         currentRoom = room
         socket.join(room)
-        io.sockets.in(room).emit('newGame', newField);
-        currentGame = newField
+        io.sockets.in(room).emit('newGame', NEW_FIELD);
+        currentGame = NEW_FIELD
     })
     socket.on('turn', turn => {
         currentGame = turn
         computerThinkingAbout(turn, currentRoom)})
     socket.on('disconnect',() => {
-        GamesCtrl.saveGame(currentGame)
+        //GamesCtrl.saveGame(currentGame)
 
         console.log('client has gone ' + currentRoom)
 
@@ -220,11 +198,9 @@ io.on('connection', socket => {
         socket.disconnect()
         currentRoom = null
     })
-    socket.on('disconnecting', () => console.log('wtf',socket.rooms))
-
 })
 
-const PORT = 3005;
+
 
 mongoose.connect('mongodb+srv://testUser:test123pass@mycluster.ehxqa.mongodb.net/tic-tac-toe?retryWrites=true&w=majority',
     {
