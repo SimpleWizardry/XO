@@ -13,7 +13,6 @@ export default function MainScreen() {
     const [gameHistory, setGameHistory] = useState([])
     const [field,setField] = useState({gameState:{}})
     const [wrongTurn, setWrongTurn] = useState(false)
-    //const [wsConnection, setWsConnection] = useState(false)
 
     useEffect(() => {
         axios.get('/games')
@@ -54,7 +53,6 @@ export default function MainScreen() {
                 .then(res => {
                     setGameHistory(res.data)
                 })
-            //socket.disconnect()
         }
     }
 
