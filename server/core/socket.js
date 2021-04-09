@@ -24,7 +24,7 @@ export default (http) => {
         })
         socket.on('turn', turn => {
             currentGame = turn
-            computerThinkingAbout(io, turn, currentRoom, currentGame)
+            computerThinkingAbout(io, turn, currentRoom, currentGame) //Пофиксить
         })
         socket.on('disconnect',() => {
             GamesCtrl.saveGame(currentGame)
@@ -33,7 +33,6 @@ export default (http) => {
 
         })
         socket.on('endGame',(game) => {
-            //GamesCtrl.saveGame(game)
             socket.disconnect()
             currentRoom = null
         })
